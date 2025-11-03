@@ -1,9 +1,12 @@
 import axios from 'axios';
 import type { Candidate, PollWithCandidate, CandidateAverage } from '../types';
 
+// Get API URL from environment variable, fallback to relative path
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

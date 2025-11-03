@@ -68,6 +68,15 @@ src/
 ```bash
 # Instalar dependencias
 npm install
+
+# Copiar archivo de variables de entorno
+cp .env.example .env
+```
+
+Edita el archivo `.env` y configura la URL de tu API:
+
+```env
+VITE_API_URL=http://localhost:3000/api
 ```
 
 ### Desarrollo
@@ -91,20 +100,37 @@ npm run preview
 
 ## Configuración de API
 
-El proyecto está configurado para conectarse a una API backend en `http://localhost:3000`. Puedes cambiar esto en `vite.config.ts`:
+### Variables de Entorno
+
+El proyecto usa variables de entorno para configurar la conexión con la API backend. Copia el archivo `.env.example` a `.env` y configura:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+**Para producción**, actualiza la URL a tu API real:
+```env
+VITE_API_URL=https://api.tudominio.com/api
+```
+
+### Proxy de Desarrollo (Opcional)
+
+Si prefieres usar un proxy durante el desarrollo, puedes configurarlo en `vite.config.ts`:
 
 ```typescript
 export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // Cambia esto a tu backend
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },
   },
 })
 ```
+
+En este caso, usa `VITE_API_URL=/api` en tu archivo `.env`.
 
 ## API Endpoints Esperados
 
