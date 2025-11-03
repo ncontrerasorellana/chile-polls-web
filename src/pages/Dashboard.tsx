@@ -259,10 +259,7 @@ export const Dashboard = () => {
                     const candidate = candidates.find((c) => c.id === avg.candidateId);
                     if (!candidate) return null;
 
-                    // Solo mostrar badge de segunda vuelta si:
-                    // 1. Hay 3 o más candidatos siendo visualizados
-                    // 2. El candidato está en el top 2 global
-                    const shouldShowSecondRound = displayCandidates.length >= 3;
+                    // Mostrar badge de segunda vuelta si el candidato está en el top 2 global
                     const isInGlobalTopTwo = globalTopTwoIds.includes(avg.candidateId);
 
                     return (
@@ -274,7 +271,7 @@ export const Dashboard = () => {
                         change={avg.change}
                         sparklineData={sparklineDataMap.get(candidate.id) || []}
                         index={index}
-                        isSecondRound={shouldShowSecondRound && isInGlobalTopTwo}
+                        isSecondRound={isInGlobalTopTwo}
                       />
                     );
                   })}
