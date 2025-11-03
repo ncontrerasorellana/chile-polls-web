@@ -260,7 +260,7 @@ export const Dashboard = () => {
                     if (!candidate) return null;
 
                     // Mostrar badge de segunda vuelta si el candidato está en el top 2 global
-                    const isInGlobalTopTwo = globalTopTwoIds.includes(avg.candidateId);
+                    const isInGlobalTopTwo = avg.candidateId ? globalTopTwoIds.includes(avg.candidateId) : false;
 
                     return (
                       <CandidateCard
