@@ -5,7 +5,6 @@ export const DateRangeFilter = () => {
   const { preset, setPreset } = useFilters();
 
   const presets = [
-    { label: 'Últimas encuestas', value: 'latest' as const, icon: '�' },
     { label: 'Último mes', value: 'month' as const, icon: '📆' },
     { label: 'Últimos 3 meses', value: '3months' as const, icon: '📊' },
     { label: 'Todos', value: 'all' as const, icon: '🗓️' },
