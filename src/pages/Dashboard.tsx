@@ -15,11 +15,20 @@ import type { ChartDataPoint, SparklineData, CandidateAverage } from '../types';
 export const Dashboard = () => {
   const { dateRange, selectedCandidates, selectedPollsters, preset } = useFilters();
   const { candidates, loading: candidatesLoading } = useCandidates();
-  
+
+  // Datos filtrados para mostrar
   const { data: pollsData, loading: pollsLoading, error } = usePollsData({
     startDate: preset === 'latest' ? undefined : dateRange.startDate,
     endDate: preset === 'latest' ? undefined : dateRange.endDate,
     candidateIds: selectedCandidates.length > 0 ? selectedCandidates : undefined,
+    pollsterNames: selectedPollsters.length > 0 ? selectedPollsters : undefined,
+    latest: preset === 'latest',
+  });
+
+  // Datos globales sin filtro de candidatos para calcular top 2
+  const { data: globalPollsData, loading: globalPollsLoading } = usePollsData({
+    startDate: preset === 'latest' ? undefined : dateRange.startDate,
+    endDate: preset === 'latest' ? undefined : dateRange.endDate,
     pollsterNames: selectedPollsters.length > 0 ? selectedPollsters : undefined,
     latest: preset === 'latest',
   });
@@ -73,6 +82,33 @@ export const Dashboard = () => {
 
     return result.sort((a, b) => a.date.localeCompare(b.date));
   }, [pollsData]);
+
+  // Calculate global top 2 candidates (sin filtro de candidatos)
+  const globalTopTwoIds = useMemo((): string[] => {
+    if (!globalPollsData?.polls || globalPollsData.polls.length === 0 || !candidates) return [];
+
+    // Calcular promedios globales para todos los candidatos
+    const candidateAverages = new Map<string, number[]>();
+
+    globalPollsData.polls.forEach((poll) => {
+      poll.entries.forEach((entry) => {
+        if (!candidateAverages.has(entry.candidateId)) {
+          candidateAverages.set(entry.candidateId, []);
+        }
+        candidateAverages.get(entry.candidateId)!.push(entry.percentage);
+      });
+    });
+
+    // Calcular promedio de cada candidato
+    const averages = Array.from(candidateAverages.entries()).map(([candidateId, percentages]) => ({
+      candidateId,
+      average: percentages.reduce((a, b) => a + b, 0) / percentages.length,
+    }));
+
+    // Ordenar por promedio descendente y tomar los top 2
+    const sortedAverages = averages.sort((a, b) => b.average - a.average);
+    return sortedAverages.slice(0, 2).map(avg => avg.candidateId);
+  }, [globalPollsData, candidates]);
 
   // Calculate averages and trends
   const averagesData = useMemo((): CandidateAverage[] => {
@@ -177,7 +213,7 @@ export const Dashboard = () => {
     );
   }
 
-  const loading = candidatesLoading || pollsLoading;
+  const loading = candidatesLoading || pollsLoading || globalPollsLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -219,35 +255,29 @@ export const Dashboard = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {(() => {
-                    // Encontrar los IDs de los 2 candidatos con mayor promedio
-                    // Solo mostrar segunda vuelta si hay 3 o más candidatos
-                    const sortedByAverage = [...averagesData].sort((a, b) =>
-                      (b.average || b.averagePercentage) - (a.average || a.averagePercentage)
-                    );
+                  {averagesData.map((avg, index) => {
+                    const candidate = candidates.find((c) => c.id === avg.candidateId);
+                    if (!candidate) return null;
+
+                    // Solo mostrar badge de segunda vuelta si:
+                    // 1. Hay 3 o más candidatos siendo visualizados
+                    // 2. El candidato está en el top 2 global
                     const shouldShowSecondRound = displayCandidates.length >= 3;
-                    const topTwoIds = shouldShowSecondRound
-                      ? sortedByAverage.slice(0, 2).map(avg => avg.candidateId)
-                      : [];
+                    const isInGlobalTopTwo = globalTopTwoIds.includes(avg.candidateId);
 
-                    return averagesData.map((avg, index) => {
-                      const candidate = candidates.find((c) => c.id === avg.candidateId);
-                      if (!candidate) return null;
-
-                      return (
-                        <CandidateCard
-                          key={candidate.id}
-                          candidate={candidate}
-                          latestPercentage={avg.average || avg.averagePercentage}
-                          trend={avg.trend || 'stable'}
-                          change={avg.change}
-                          sparklineData={sparklineDataMap.get(candidate.id) || []}
-                          index={index}
-                          isSecondRound={topTwoIds.includes(avg.candidateId)}
-                        />
-                      );
-                    });
-                  })()}
+                    return (
+                      <CandidateCard
+                        key={candidate.id}
+                        candidate={candidate}
+                        latestPercentage={avg.average || avg.averagePercentage}
+                        trend={avg.trend || 'stable'}
+                        change={avg.change}
+                        sparklineData={sparklineDataMap.get(candidate.id) || []}
+                        index={index}
+                        isSecondRound={shouldShowSecondRound && isInGlobalTopTwo}
+                      />
+                    );
+                  })}
                 </div>
 
                 <EvolutionChart data={chartData} candidates={displayCandidates} />
