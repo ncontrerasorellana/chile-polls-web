@@ -1,0 +1,10 @@
+// Component exports for easier imports
+export { CandidateCard } from './CandidateCard';
+export { CandidateFilter } from './CandidateFilter';
+export { PollsterFilter } from './PollsterFilter';
+export { DateRangeFilter } from './DateRangeFilter';
+export { EvolutionChart } from './EvolutionChart';
+export { AveragesTable } from './AveragesTable';
+export { Sparkline } from './Sparkline';
+export { LoadingSkeleton } from './LoadingSkeleton';
+export { ErrorBoundary } from './ErrorBoundary';
