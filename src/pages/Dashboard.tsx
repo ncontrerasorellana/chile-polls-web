@@ -221,10 +221,14 @@ export const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {(() => {
                     // Encontrar los IDs de los 2 candidatos con mayor promedio
-                    const sortedByAverage = [...averagesData].sort((a, b) => 
+                    // Solo mostrar segunda vuelta si hay 3 o más candidatos
+                    const sortedByAverage = [...averagesData].sort((a, b) =>
                       (b.average || b.averagePercentage) - (a.average || a.averagePercentage)
                     );
-                    const topTwoIds = sortedByAverage.slice(0, 2).map(avg => avg.candidateId);
+                    const shouldShowSecondRound = displayCandidates.length >= 3;
+                    const topTwoIds = shouldShowSecondRound
+                      ? sortedByAverage.slice(0, 2).map(avg => avg.candidateId)
+                      : [];
 
                     return averagesData.map((avg, index) => {
                       const candidate = candidates.find((c) => c.id === avg.candidateId);
